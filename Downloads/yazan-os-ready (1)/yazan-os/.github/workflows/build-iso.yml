@@ -1,0 +1,45 @@
+name: Build Yazan OS ISO
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch: # يتيح لك بناء ملف الـ ISO يدوياً بضغطة زر من صفحة Actions
+
+jobs:
+  build:
+    name: Build Bootable ISO
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Build Dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            gcc \
+            binutils \
+            grub-pc-bin \
+            grub-common \
+            xorriso \
+            mtools
+
+      - name: Compile Kernel and Create ISO
+        run: |
+          make iso
+
+      - name: Verify ISO Image
+        run: |
+          ls -lh build/yazanos.iso
+          file build/yazanos.iso
+
+      - name: Upload Bootable ISO Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: yazan-os-bootable-iso
+          path: build/yazanos.iso
+          retention-days: 30
